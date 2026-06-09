@@ -1,5 +1,5 @@
 """
-Indexing pipeline — takes raw documents and produces searchable vectors.
+IndexingPipeline — takes raw documents and produces searchable vectors.
 
 Pipeline stages:
   1. Load     — accept str / file path / URL / list of Documents
@@ -28,17 +28,17 @@ import time
 from pathlib import Path
 from typing import AsyncIterator, Iterable
 
-from langchain.text_splitter import RecursiveCharacterTextSplitter
+from langchain_text_splitters import RecursiveCharacterTextSplitter
 
 from rag_pipeline.config.settings import settings
-from rag_pipeline.core.embeddings import EmbeddingService
+from rag_pipeline.services.embedding_service import EmbeddingService
+from rag_pipeline.services.vector_store import VectorStore
 from rag_pipeline.core.models import (
     Chunk,
     Document,
     IndexingResult,
     IndexStatus,
 )
-from rag_pipeline.core.vector_store import VectorStore
 
 log = logging.getLogger(__name__)
 

@@ -1,5 +1,5 @@
 """
-Reranker — second-stage cross-encoder that re-scores retrieved chunks.
+Reranker service — second-stage cross-encoder that re-scores retrieved chunks.
 
 Why: bi-encoder (dense retrieval) optimises for fast ANN search but its
 scores are not calibrated for fine-grained relevance. A cross-encoder

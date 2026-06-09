@@ -227,7 +227,6 @@ class VectorStore:
                 best = max(remaining, key=lambda c: c.score)
             else:
                 # Score = λ·relevance − (1−λ)·max_sim_to_selected
-                sel_texts = [s.text for s in selected]
                 best_score = float("-inf")
                 best = remaining[0]
                 for cand in remaining:

@@ -46,7 +46,7 @@ services:
         condition: service_healthy
       redis:
         condition: service_healthy
-    command: uvicorn rag_pipeline.api:app --host 0.0.0.0 --port 8000 --workers 1
+    command: uvicorn rag_pipeline.api.app:app --host 0.0.0.0 --port 8000 --workers 1
 
 volumes:
   qdrant_data:

@@ -1,16 +1,17 @@
 """
-FastAPI service — exposes the indexing and query pipelines as REST endpoints.
+FastAPI application — exposes the indexing and query pipelines as REST endpoints.
 
 Run:
-    uvicorn rag_pipeline.api:app --host 0.0.0.0 --port 8000 --workers 1
+    uvicorn rag_pipeline.api.app:app --host 0.0.0.0 --port 8000 --workers 1
 
 Endpoints:
     POST  /index/documents          Index a list of text documents
-    POST  /index/url                Fetch a URL and index its content
     DELETE /index/source            Delete all chunks for a source
     GET   /index/sources            List all indexed sources
+    GET   /index/info               Collection statistics
     POST  /query                    Query the knowledge base (non-streaming)
     POST  /query/stream             Stream the answer token by token (SSE)
+    POST  /query/chat               Multi-turn conversation with history
     GET   /health                   Liveness check
     GET   /health/ready             Readiness check (pings Qdrant + Redis)
 """
@@ -28,8 +29,8 @@ from pydantic import BaseModel, Field
 
 from rag_pipeline.config.settings import settings
 from rag_pipeline.core.models import Document
-from rag_pipeline.indexing.pipeline import IndexingPipeline
-from rag_pipeline.query.pipeline import QueryPipeline
+from rag_pipeline.pipelines.indexing_pipeline import IndexingPipeline
+from rag_pipeline.pipelines.query_pipeline import QueryPipeline
 
 log = logging.getLogger(__name__)
 logging.basicConfig(

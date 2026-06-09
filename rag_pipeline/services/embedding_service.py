@@ -1,7 +1,7 @@
 """
 EmbeddingService — async, cached, batched.
 
-Features:
+Wraps the OpenAI embeddings API with:
   - SHA-256 keyed Redis cache (TTL configurable, default 7 days)
   - Automatic batch splitting to respect OpenAI's 2048-input-per-request limit
   - Exponential back-off retry on RateLimitError / APIConnectionError

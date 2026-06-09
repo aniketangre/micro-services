@@ -17,8 +17,8 @@ from unittest.mock import AsyncMock, MagicMock, patch
 import pytest
 
 from rag_pipeline.core.models import Chunk, Document, IndexStatus
-from rag_pipeline.indexing.pipeline import IndexingPipeline
-from rag_pipeline.query.pipeline import QueryPipeline, _build_prompt
+from rag_pipeline.pipelines.indexing_pipeline import IndexingPipeline
+from rag_pipeline.pipelines.query_pipeline import QueryPipeline, _build_prompt
 
 
 # ---------------------------------------------------------------------------
@@ -157,7 +157,7 @@ class TestEmbeddingService:
     @pytest.mark.asyncio
     async def test_embed_returns_normalised_vectors(self, mock_redis, mock_openai_embed):
         import numpy as np
-        from rag_pipeline.core.embeddings import EmbeddingService
+        from rag_pipeline.services.embedding_service import EmbeddingService
 
         svc = EmbeddingService()
         svc._redis = mock_redis
@@ -172,7 +172,7 @@ class TestEmbeddingService:
 
     @pytest.mark.asyncio
     async def test_embed_uses_cache_on_hit(self, mock_redis, mock_openai_embed):
-        from rag_pipeline.core.embeddings import EmbeddingService
+        from rag_pipeline.services.embedding_service import EmbeddingService
 
         cached_vec = [0.5] * 1536
         mock_redis.mget = AsyncMock(return_value=[json.dumps(cached_vec)])
@@ -199,8 +199,8 @@ class TestIndexingPipeline:
     @pytest.mark.asyncio
     async def test_index_document_success(self, sample_document):
         with (
-            patch("rag_pipeline.indexing.pipeline.EmbeddingService") as MockEmbed,
-            patch("rag_pipeline.indexing.pipeline.VectorStore") as MockStore,
+            patch("rag_pipeline.pipelines.indexing_pipeline.EmbeddingService") as MockEmbed,
+            patch("rag_pipeline.pipelines.indexing_pipeline.VectorStore") as MockStore,
         ):
             embed_instance = AsyncMock()
             embed_instance.embed = AsyncMock(return_value=[[0.1] * 1536] * 10)
@@ -226,8 +226,8 @@ class TestIndexingPipeline:
     @pytest.mark.asyncio
     async def test_index_document_handles_error_gracefully(self):
         with (
-            patch("rag_pipeline.indexing.pipeline.EmbeddingService") as MockEmbed,
-            patch("rag_pipeline.indexing.pipeline.VectorStore") as MockStore,
+            patch("rag_pipeline.pipelines.indexing_pipeline.EmbeddingService") as MockEmbed,
+            patch("rag_pipeline.pipelines.indexing_pipeline.VectorStore") as MockStore,
         ):
             embed_instance = AsyncMock()
             embed_instance.embed = AsyncMock(side_effect=RuntimeError("API down"))
@@ -274,10 +274,10 @@ class TestQueryPipeline:
     @pytest.mark.asyncio
     async def test_query_returns_answer(self, mock_chunks):
         with (
-            patch("rag_pipeline.query.pipeline.EmbeddingService") as MockEmbed,
-            patch("rag_pipeline.query.pipeline.VectorStore") as MockStore,
-            patch("rag_pipeline.query.pipeline.AsyncOpenAI") as MockLLM,
-            patch("rag_pipeline.query.pipeline.rerank", new_callable=AsyncMock) as mock_rerank,
+            patch("rag_pipeline.pipelines.query_pipeline.EmbeddingService") as MockEmbed,
+            patch("rag_pipeline.pipelines.query_pipeline.VectorStore") as MockStore,
+            patch("rag_pipeline.pipelines.query_pipeline.AsyncOpenAI") as MockLLM,
+            patch("rag_pipeline.pipelines.query_pipeline.rerank", new_callable=AsyncMock) as mock_rerank,
         ):
             embed_instance = AsyncMock()
             embed_instance.embed_query = AsyncMock(return_value=[0.1] * 1536)
@@ -321,10 +321,10 @@ class TestQueryPipeline:
     @pytest.mark.asyncio
     async def test_query_returns_no_context_when_empty(self):
         with (
-            patch("rag_pipeline.query.pipeline.EmbeddingService") as MockEmbed,
-            patch("rag_pipeline.query.pipeline.VectorStore") as MockStore,
-            patch("rag_pipeline.query.pipeline.AsyncOpenAI") as MockLLM,
-            patch("rag_pipeline.query.pipeline.rerank", new_callable=AsyncMock) as mock_rerank,
+            patch("rag_pipeline.pipelines.query_pipeline.EmbeddingService") as MockEmbed,
+            patch("rag_pipeline.pipelines.query_pipeline.VectorStore") as MockStore,
+            patch("rag_pipeline.pipelines.query_pipeline.AsyncOpenAI") as MockLLM,
+            patch("rag_pipeline.pipelines.query_pipeline.rerank", new_callable=AsyncMock) as mock_rerank,
         ):
             embed_instance = AsyncMock()
             embed_instance.embed_query = AsyncMock(return_value=[0.1] * 1536)

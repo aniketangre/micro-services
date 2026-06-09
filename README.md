@@ -5,19 +5,31 @@
 ```
 rag_pipeline/
 ├── config/
-│   └── settings.py          # Pydantic settings from env vars
+│   └── settings.py              # Pydantic settings from env vars
 ├── core/
-│   ├── models.py            # Document, Chunk, QueryResult (shared dataclasses)
-│   ├── embeddings.py        # EmbeddingService — cached, batched, with retry
-│   └── vector_store.py      # VectorStore — Qdrant client with HNSW index mgmt
-├── indexing/
-│   └── pipeline.py          # IndexingPipeline — load → chunk → embed → upsert
-├── query/
-│   ├── pipeline.py          # QueryPipeline — embed → retrieve → rerank → generate
-│   └── reranker.py          # CrossEncoder reranker (sentence-transformers)
-├── api.py                   # FastAPI service
-└── tests.py                 # pytest-asyncio test suite
+│   └── models.py                # Document, Chunk, QueryResult (shared dataclasses)
+├── services/                    # External system wrappers — each is a standalone service
+│   ├── embedding_service.py     # EmbeddingService — OpenAI embeddings + Redis cache
+│   ├── vector_store.py          # VectorStore — Qdrant client with HNSW index mgmt
+│   └── reranker.py              # Reranker — CrossEncoder (sentence-transformers)
+├── pipelines/                   # Business orchestration — wire the services together
+│   ├── indexing_pipeline.py     # IndexingPipeline — load → chunk → embed → upsert
+│   └── query_pipeline.py        # QueryPipeline — embed → retrieve → rerank → generate
+└── api/
+    └── app.py                   # FastAPI service
+tests/
+└── test_pipelines.py            # pytest-asyncio test suite
 ```
+
+### Layer responsibilities
+
+| Layer | What lives here | Rule |
+|---|---|---|
+| `config/` | Env-driven settings singleton | No business logic |
+| `core/` | Shared dataclasses (Document, Chunk, QueryResult) | No I/O, no imports from other layers |
+| `services/` | One class per external system (OpenAI, Qdrant, Redis) | Knows nothing about pipelines |
+| `pipelines/` | Orchestration — composes services into multi-step flows | Imports services, not the API |
+| `api/` | HTTP transport layer | Thin — delegates immediately to pipelines |
 
 ## Quick start
 
@@ -32,7 +44,7 @@ pip install -r requirements.txt
 export OPENAI_API_KEY=sk-...
 
 # 4. Run the API
-uvicorn rag_pipeline.api:app --reload
+uvicorn rag_pipeline.api.app:app --reload
 
 # 5. Index a document
 curl -X POST http://localhost:8000/index/documents \
@@ -50,8 +62,8 @@ curl -X POST http://localhost:8000/query \
 ```python
 import asyncio
 from rag_pipeline.core.models import Document
-from rag_pipeline.indexing.pipeline import IndexingPipeline
-from rag_pipeline.query.pipeline import QueryPipeline
+from rag_pipeline.pipelines.indexing_pipeline import IndexingPipeline
+from rag_pipeline.pipelines.query_pipeline import QueryPipeline
 
 async def main():
     # --- Indexing ---
@@ -91,7 +103,7 @@ asyncio.run(main())
 
 ## Environment variables
 
-See `config/settings.py` for full list. Minimum required:
+See `rag_pipeline/config/settings.py` for full list. Minimum required:
 
 ```
 OPENAI_API_KEY=sk-...
@@ -102,5 +114,5 @@ All others have sensible defaults for local development.
 ## Running tests
 
 ```bash
-pytest rag_pipeline/tests.py -v --asyncio-mode=auto
+pytest tests/ -v --asyncio-mode=auto
 ```

@@ -1,5 +1,5 @@
 """
-Query pipeline — handles the online (user-facing) side of RAG.
+QueryPipeline — handles the online (user-facing) side of RAG.
 
 Stages:
   1. Embed query        — same model as indexing (cache hit typical)
@@ -47,10 +47,10 @@ from typing import Any, AsyncIterator
 from openai import AsyncOpenAI
 
 from rag_pipeline.config.settings import settings
-from rag_pipeline.core.embeddings import EmbeddingService
+from rag_pipeline.services.embedding_service import EmbeddingService
+from rag_pipeline.services.vector_store import VectorStore
+from rag_pipeline.services.reranker import rerank
 from rag_pipeline.core.models import QueryResult, RetrievedChunk
-from rag_pipeline.core.vector_store import VectorStore
-from rag_pipeline.query.reranker import rerank
 
 log = logging.getLogger(__name__)
 
